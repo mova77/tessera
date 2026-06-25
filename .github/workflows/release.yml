@@ -10,9 +10,10 @@ name: Release
 #   4. Creates a GitHub Release with auto-generated notes and attaches the server JAR.
 #
 # Required repository secrets:
-#   GPG_PRIVATE_KEY  — armoured private key (gpg --armor --export-secret-keys <id>)
-#   GPG_PASSPHRASE   — passphrase protecting the private key
-#   CENTRAL_TOKEN    — deployment token from central.sonatype.com
+#   GPG_PRIVATE_KEY    — armoured private key exported from your GPG keyring
+#   GPG_PASSPHRASE     — passphrase protecting the private key
+#   CENTRAL_USERNAME   — token username shown in the Sonatype Central Portal user-token dialog
+#   CENTRAL_TOKEN      — token password shown in the Sonatype Central Portal user-token dialog
 
 on:
   push:
@@ -64,7 +65,7 @@ jobs:
       - name: Publish to Maven Central
         run: mvn -B -P release deploy -DskipTests
         env:
-          CENTRAL_USERNAME: token
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
           CENTRAL_TOKEN: ${{ secrets.CENTRAL_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
