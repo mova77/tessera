@@ -36,3 +36,19 @@ jobs:
 
       - name: Build, test, and run integration tests
         run: mvn -B -ntp clean verify
+
+      - name: Notify Slack on build failure
+        if: failure()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        # Posts to the team's shared build-failures channel. No-ops when the bot
+        # token is absent (e.g. pull requests from forks), and never fails the
+        # job itself — the build result is already red.
+        run: |
+          [ -n "${SLACK_BOT_TOKEN:-}" ] || exit 0
+          payload=$(printf '{"channel":"C0BC0R716KE","text":":rotating_light: Build failed on `%s@%s` — <%s/%s/actions/runs/%s|view run>"}' \
+            "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")
+          curl -fsS -X POST https://slack.com/api/chat.postMessage \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H 'Content-type: application/json; charset=utf-8' \
+            --data "$payload" || true
